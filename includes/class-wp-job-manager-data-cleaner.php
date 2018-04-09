@@ -39,6 +39,18 @@ class WP_Job_Manager_Data_Cleaner {
 	);
 
 	/**
+	 * Transient names (as MySQL regexes) to be deleted. The prefixes
+	 * "_transient_" and "_transient_timeout_" will be prepended.
+	 *
+	 * @var $transients
+	 */
+	private static $transients = array(
+		'_job_manager_activation_redirect',
+		'get_job_listings-transient-version',
+		'jm_.*',
+	);
+
+	/**
 	 * Cleanup all data.
 	 *
 	 * @access public
@@ -47,6 +59,7 @@ class WP_Job_Manager_Data_Cleaner {
 		self::cleanup_custom_post_types();
 		self::cleanup_taxonomies();
 		self::cleanup_pages();
+		self::cleanup_transients();
 	}
 
 	/**
@@ -117,6 +130,26 @@ class WP_Job_Manager_Data_Cleaner {
 		$jobs_page_id = get_option( 'job_manager_jobs_page_id' );
 		if ( $jobs_page_id ) {
 			wp_trash_post( $jobs_page_id );
+		}
+	}
+
+	/**
+	 * Cleanup transients from the database.
+	 *
+	 * @access private
+	 */
+	private static function cleanup_transients() {
+		global $wpdb;
+
+		foreach ( array( '_transient_', '_transient_timeout_' ) as $prefix ) {
+			foreach ( self::$transients as $transient ) {
+				$wpdb->query(
+					$wpdb->prepare(
+						"DELETE FROM $wpdb->options WHERE option_name RLIKE %s",
+						$prefix . $transient
+					)
+				);
+			}
 		}
 	}
 }
