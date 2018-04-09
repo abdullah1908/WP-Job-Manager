@@ -39,6 +39,20 @@ class WP_Job_Manager_Data_Cleaner {
 	);
 
 	/**
+	 * User meta key names to be deleted.
+	 *
+	 * @var array $user_meta_keys
+	 */
+	private static $user_meta_keys = array(
+		'_company_logo',
+		'_company_name',
+		'_company_website',
+		'_company_tagline',
+		'_company_twitter',
+		'_company_video',
+	);
+
+	/**
 	 * Cleanup all data.
 	 *
 	 * @access public
@@ -47,6 +61,7 @@ class WP_Job_Manager_Data_Cleaner {
 		self::cleanup_custom_post_types();
 		self::cleanup_taxonomies();
 		self::cleanup_pages();
+		self::cleanup_user_meta();
 	}
 
 	/**
@@ -117,6 +132,19 @@ class WP_Job_Manager_Data_Cleaner {
 		$jobs_page_id = get_option( 'job_manager_jobs_page_id' );
 		if ( $jobs_page_id ) {
 			wp_trash_post( $jobs_page_id );
+		}
+	}
+
+	/**
+	 * Cleanup user meta from the database.
+	 *
+	 * @access private
+	 */
+	private static function cleanup_user_meta() {
+		global $wpdb;
+
+		foreach ( self::$user_meta_keys as $meta_key ) {
+			$wpdb->delete( $wpdb->usermeta, array( 'meta_key' => $meta_key ) );
 		}
 	}
 }
