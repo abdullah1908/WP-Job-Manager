@@ -38,6 +38,17 @@ class WP_Job_Manager_Data_Cleaner {
 		'job_listing_type',
 	);
 
+	/** Cron jobs to be unscheduled.
+	 *
+	 * @var $cron_jobs
+	 */
+	private static $cron_jobs = array(
+		'job_manager_check_for_expired_jobs',
+		'job_manager_delete_old_previews',
+		'job_manager_clear_expired_transients',
+		'job_manager_usage_tracking_send_usage_data',
+	);
+
 	/**
 	 * Cleanup all data.
 	 *
@@ -47,6 +58,7 @@ class WP_Job_Manager_Data_Cleaner {
 		self::cleanup_custom_post_types();
 		self::cleanup_taxonomies();
 		self::cleanup_pages();
+		self::cleanup_cron_jobs();
 	}
 
 	/**
@@ -117,6 +129,17 @@ class WP_Job_Manager_Data_Cleaner {
 		$jobs_page_id = get_option( 'job_manager_jobs_page_id' );
 		if ( $jobs_page_id ) {
 			wp_trash_post( $jobs_page_id );
+		}
+	}
+
+	/**
+	 * Cleanup cron jobs.
+	 *
+	 * @access private
+	 */
+	private static function cleanup_cron_jobs() {
+		foreach ( self::$cron_jobs as $job ) {
+			wp_clear_scheduled_hook( $job );
 		}
 	}
 }
